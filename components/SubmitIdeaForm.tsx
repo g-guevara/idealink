@@ -28,7 +28,7 @@ export default function SubmitIdeaForm() {
   const [category, setCategory] = useState<Category | ''>('');
   const [timeRequired, setTimeRequired] = useState('');
   const [isPaid, setIsPaid] = useState(false);
-  const [teamSize, setTeamSize] = useState('');
+  const [membersNeeded, setMembersNeeded] = useState('');
   const [selectedProfessions, setSelectedProfessions] = useState<Profession[]>([]);
 
   const categories: Category[] = [
@@ -53,10 +53,19 @@ export default function SubmitIdeaForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "Debes estar logueado para crear una idea",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!category) {
       toast({
-        title: "Missing information",
-        description: "Please select a category",
+        title: "Información faltante",
+        description: "Por favor selecciona una categoría",
         variant: "destructive",
       });
       return;
@@ -64,8 +73,17 @@ export default function SubmitIdeaForm() {
     
     if (selectedProfessions.length === 0) {
       toast({
-        title: "Missing information",
-        description: "Please select at least one required profession",
+        title: "Información faltante",
+        description: "Por favor selecciona al menos una profesión requerida",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!membersNeeded || parseInt(membersNeeded) < 1) {
+      toast({
+        title: "Información faltante",
+        description: "Por favor especifica el número de miembros necesarios",
         variant: "destructive",
       });
       return;
@@ -73,72 +91,107 @@ export default function SubmitIdeaForm() {
     
     setIsSubmitting(true);
     
-    // Simulate submitting the idea
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    toast({
-      title: "Idea submitted",
-      description: "Your idea has been submitted successfully!",
-    });
-    
-    // Reset form
-    setTitle('');
-    setShortDescription('');
-    setLongDescription('');
-    setCategory('');
-    setTimeRequired('');
-    setIsPaid(false);
-    setTeamSize('');
-    setSelectedProfessions([]);
-    setIsSubmitting(false);
+    try {
+      const response = await fetch('/api/ideas', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title,
+          shortDescription,
+          longDescription,
+          category,
+          timeRequired,
+          isPaid,
+          membersNeeded: parseInt(membersNeeded),
+          professions: selectedProfessions,
+          authorId: user.id,
+          authorName: user.name,
+          authorEmail: user.email,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al crear la idea');
+      }
+
+      toast({
+        title: "¡Idea creada!",
+        description: "Tu idea ha sido publicada exitosamente",
+      });
+      
+      // Reset form
+      setTitle('');
+      setShortDescription('');
+      setLongDescription('');
+      setCategory('');
+      setTimeRequired('');
+      setIsPaid(false);
+      setMembersNeeded('');
+      setSelectedProfessions([]);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Error al crear la idea",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="title">Title</Label>
+        <Label htmlFor="title">Título</Label>
         <Input
           id="title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
-          placeholder="Give your idea a catchy title"
+          placeholder="Dale a tu idea un título atractivo"
+          disabled={isSubmitting}
         />
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="shortDescription">Short Description</Label>
+        <Label htmlFor="shortDescription">Descripción Corta</Label>
         <Textarea
           id="shortDescription"
           value={shortDescription}
           onChange={(e) => setShortDescription(e.target.value)}
           required
-          placeholder="Briefly describe your idea (max 150 characters)"
+          placeholder="Describe brevemente tu idea (máx 150 caracteres)"
           maxLength={150}
+          disabled={isSubmitting}
         />
-        <p className="text-xs text-gray-500">{shortDescription.length}/150 characters</p>
+        <p className="text-xs text-gray-500">{shortDescription.length}/150 caracteres</p>
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="longDescription">Full Description</Label>
+        <Label htmlFor="longDescription">Descripción Completa</Label>
         <Textarea
           id="longDescription"
           value={longDescription}
           onChange={(e) => setLongDescription(e.target.value)}
           required
-          placeholder="Provide a detailed description of your idea"
+          placeholder="Proporciona una descripción detallada de tu idea"
           rows={6}
+          disabled={isSubmitting}
         />
       </div>
       
       <div className="grid md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <Label htmlFor="category">Category</Label>
-          <Select value={category} onValueChange={(value) => setCategory(value as Category)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select a category" />
+          <Label htmlFor="category">Categoría</Label>
+          <Select value={category} onValueChange={(value) => setCategory(value as Category)} disabled={isSubmitting}>
+            <SelectTrigger className="border-black">
+              <SelectValue placeholder="Selecciona una categoría" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="border-black">
               {categories.map((cat) => (
                 <SelectItem key={cat} value={cat}>{cat}</SelectItem>
               ))}
@@ -147,17 +200,17 @@ export default function SubmitIdeaForm() {
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="timeRequired">Time Required</Label>
-          <Select value={timeRequired} onValueChange={setTimeRequired}>
-            <SelectTrigger>
-              <SelectValue placeholder="Estimated time needed" />
+          <Label htmlFor="timeRequired">Tiempo Requerido</Label>
+          <Select value={timeRequired} onValueChange={setTimeRequired} disabled={isSubmitting}>
+            <SelectTrigger className="border-black">
+              <SelectValue placeholder="Tiempo estimado necesario" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Less than 1 month">Less than 1 month</SelectItem>
-              <SelectItem value="1-3 months">1-3 months</SelectItem>
-              <SelectItem value="3-6 months">3-6 months</SelectItem>
-              <SelectItem value="6-12 months">6-12 months</SelectItem>
-              <SelectItem value="More than 1 year">More than 1 year</SelectItem>
+            <SelectContent className="border-black">
+              <SelectItem value="Menos de 1 mes">Menos de 1 mes</SelectItem>
+              <SelectItem value="1-3 meses">1-3 meses</SelectItem>
+              <SelectItem value="3-6 meses">3-6 meses</SelectItem>
+              <SelectItem value="6-12 meses">6-12 meses</SelectItem>
+              <SelectItem value="Más de 1 año">Más de 1 año</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -165,18 +218,18 @@ export default function SubmitIdeaForm() {
       
       <div className="grid md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <Label htmlFor="teamSize">Team Size</Label>
-          <Select value={teamSize} onValueChange={setTeamSize}>
-            <SelectTrigger>
-              <SelectValue placeholder="Number of team members" />
+          <Label htmlFor="membersNeeded">Miembros del Equipo</Label>
+          <Select value={membersNeeded} onValueChange={setMembersNeeded} disabled={isSubmitting}>
+            <SelectTrigger className="border-black">
+              <SelectValue placeholder="Número de miembros del equipo" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1">1 person</SelectItem>
-              <SelectItem value="2">2 people</SelectItem>
-              <SelectItem value="3">3 people</SelectItem>
-              <SelectItem value="4">4 people</SelectItem>
-              <SelectItem value="5">5 people</SelectItem>
-              <SelectItem value="6+">6+ people</SelectItem>
+            <SelectContent className="border-black">
+              <SelectItem value="1">1 persona</SelectItem>
+              <SelectItem value="2">2 personas</SelectItem>
+              <SelectItem value="3">3 personas</SelectItem>
+              <SelectItem value="4">4 personas</SelectItem>
+              <SelectItem value="5">5 personas</SelectItem>
+              <SelectItem value="6">6+ personas</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -186,13 +239,14 @@ export default function SubmitIdeaForm() {
             id="isPaid" 
             checked={isPaid}
             onCheckedChange={(checked) => setIsPaid(checked as boolean)}
+            disabled={isSubmitting}
           />
-          <Label htmlFor="isPaid">This is a paid opportunity</Label>
+          <Label htmlFor="isPaid">Esta es una oportunidad remunerada</Label>
         </div>
       </div>
       
       <div className="space-y-2">
-        <Label>Required Professions</Label>
+        <Label>Profesiones Requeridas</Label>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
           {professions.map((profession) => (
             <div key={profession} className="flex items-center space-x-2">
@@ -200,15 +254,23 @@ export default function SubmitIdeaForm() {
                 id={`profession-${profession}`}
                 checked={selectedProfessions.includes(profession)}
                 onCheckedChange={() => toggleProfession(profession)}
+                disabled={isSubmitting}
               />
-              <Label htmlFor={`profession-${profession}`}>{profession}</Label>
+              <Label htmlFor={`profession-${profession}`} className="text-sm">
+                {profession}
+              </Label>
             </div>
           ))}
         </div>
+        {selectedProfessions.length > 0 && (
+          <p className="text-xs text-gray-500 mt-2">
+            Seleccionadas: {selectedProfessions.join(', ')}
+          </p>
+        )}
       </div>
       
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? 'Submitting idea...' : 'Submit Idea'}
+      <Button type="submit" className="w-full bg-black hover:bg-gray-900" disabled={isSubmitting}>
+        {isSubmitting ? 'Creando idea...' : 'Crear Idea'}
       </Button>
     </form>
   );

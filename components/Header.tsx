@@ -7,16 +7,31 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import LoginForm from '@/components/LoginForm';
 import SignupForm from '@/components/SignupForm';
 import { useState } from 'react';
-import { Menu } from 'lucide-react';
+import { Menu, User, LogOut, LayoutDashboard } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export default function Header() {
   const { user, logout } = useAuth();
   const [authType, setAuthType] = useState<'login' | 'signup'>('login');
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
 
+  const handleAuthSuccess = () => {
+    setIsAuthDialogOpen(false);
+  };
+
+  const handleSwitchAuth = (type: 'login' | 'signup') => {
+    setAuthType(type);
+  };
+
   return (
-    <header className="border-b border-black py-4 bg-white">
+    <header className="border-b border-black py-4 bg-white sticky top-0 z-50">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
         <Link href="/" className="text-4xl font-black tracking-tighter leading-none hover:opacity-80 transition-opacity">
           IDEALINK
@@ -31,32 +46,46 @@ export default function Header() {
                 <span className="sr-only">Toggle menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right">
+            <SheetContent side="right" className="border-black">
               <nav className="flex flex-col gap-4 mt-8">
-                <Link href="/" className="text-lg font-medium">
+                <Link href="/" className="text-lg font-medium hover:underline">
                   Ideas
                 </Link>
                 {user ? (
                   <>
-                    <Link href="/dashboard" className="text-lg font-medium">
+                    <Link href="/dashboard" className="text-lg font-medium hover:underline">
                       Dashboard
                     </Link>
-                    <Button variant="outline" onClick={logout} className="mt-2 border-black">
-                      Log out
-                    </Button>
+                    <div className="pt-4 border-t border-gray-200">
+                      <p className="text-sm text-gray-600 mb-2">Conectado como:</p>
+                      <p className="font-medium mb-4">{user.name}</p>
+                      <Button 
+                        variant="outline" 
+                        onClick={logout} 
+                        className="w-full border-black"
+                      >
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Cerrar Sesión
+                      </Button>
+                    </div>
                   </>
                 ) : (
                   <>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => {
-                        setAuthType('login');
-                        setIsAuthDialogOpen(true);
-                      }}
-                      className="justify-start border-black"
-                    >
-                      Log in
-                    </Button>
+                    <Dialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => {
+                            setAuthType('login');
+                            setIsAuthDialogOpen(true);
+                          }}
+                          className="justify-start border-black"
+                        >
+                          Iniciar Sesión
+                        </Button>
+                      </DialogTrigger>
+                    </Dialog>
+                    
                     <Button 
                       variant="outline" 
                       onClick={() => {
@@ -65,7 +94,7 @@ export default function Header() {
                       }}
                       className="justify-start border-black"
                     >
-                      Sign up
+                      Registrarse
                     </Button>
                   </>
                 )}
@@ -78,13 +107,36 @@ export default function Header() {
         <nav className="hidden md:flex items-center gap-6">
           {user ? (
             <>
-              <Link href="/dashboard\" className="text-sm font-medium hover:underline">
+              <Link href="/dashboard" className="text-sm font-medium hover:underline flex items-center gap-2">
+                <LayoutDashboard className="h-4 w-4" />
                 Dashboard
               </Link>
-              <span className="text-sm font-medium">{user.name}</span>
-              <Button variant="outline" onClick={logout} className="border-black">
-                Log out
-              </Button>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="border-black flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    {user.name}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="border-black">
+                  <DropdownMenuItem disabled>
+                    <span className="text-sm text-gray-600">{user.email}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard" className="cursor-pointer">
+                      <LayoutDashboard className="h-4 w-4 mr-2" />
+                      Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={logout} className="cursor-pointer text-red-600">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Cerrar Sesión
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </>
           ) : (
             <>
@@ -92,47 +144,70 @@ export default function Header() {
                 <DialogTrigger asChild>
                   <Button 
                     variant="outline" 
-                    onClick={() => setAuthType('login')}
+                    onClick={() => {
+                      setAuthType('login');
+                      setIsAuthDialogOpen(true);
+                    }}
                     className="border-black"
                   >
-                    Log in
+                    Iniciar Sesión
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent className="sm:max-w-[425px] border-black">
                   <DialogHeader>
                     <DialogTitle>
-                      {authType === 'login' ? 'Log in' : 'Create an account'}
+                      {authType === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'}
                     </DialogTitle>
                   </DialogHeader>
                   {authType === 'login' ? (
-                    <LoginForm onSuccess={() => setIsAuthDialogOpen(false)} 
-                      onSwitchToSignup={() => setAuthType('signup')}
+                    <LoginForm 
+                      onSuccess={handleAuthSuccess} 
+                      onSwitchToSignup={() => handleSwitchAuth('signup')}
                     />
                   ) : (
-                    <SignupForm onSuccess={() => setIsAuthDialogOpen(false)} 
-                      onSwitchToLogin={() => setAuthType('login')}
+                    <SignupForm 
+                      onSuccess={handleAuthSuccess} 
+                      onSwitchToLogin={() => handleSwitchAuth('login')}
                     />
                   )}
                 </DialogContent>
               </Dialog>
 
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button 
-                    variant="default"
-                    onClick={() => {
-                      setAuthType('signup');
-                      setIsAuthDialogOpen(true);
-                    }}
-                    className="bg-black hover:bg-gray-900"
-                  >
-                    Sign up
-                  </Button>
-                </DialogTrigger>
-              </Dialog>
+              <Button 
+                variant="default"
+                onClick={() => {
+                  setAuthType('signup');
+                  setIsAuthDialogOpen(true);
+                }}
+                className="bg-black hover:bg-gray-900 text-white"
+              >
+                Registrarse
+              </Button>
             </>
           )}
         </nav>
+
+        {/* Auth Dialog for both mobile and desktop */}
+        <Dialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
+          <DialogContent className="sm:max-w-[425px] border-black">
+            <DialogHeader>
+              <DialogTitle>
+                {authType === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'}
+              </DialogTitle>
+            </DialogHeader>
+            {authType === 'login' ? (
+              <LoginForm 
+                onSuccess={handleAuthSuccess} 
+                onSwitchToSignup={() => handleSwitchAuth('signup')}
+              />
+            ) : (
+              <SignupForm 
+                onSuccess={handleAuthSuccess} 
+                onSwitchToLogin={() => handleSwitchAuth('login')}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </header>
   );

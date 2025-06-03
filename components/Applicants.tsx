@@ -1,48 +1,56 @@
 "use client";
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Eye, CheckCircle, XCircle, Clock, Mail, Phone, User } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { CheckCircle, XCircle, Clock, Mail, User, ExternalLink } from 'lucide-react';
+import { Application } from '@/types';
+import { useToast } from '@/hooks/use-toast';
 
-export default function Applicants({ userId }) {
-  const [applicants, setApplicants] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [selectedApplicant, setSelectedApplicant] = useState(null);
+interface ApplicantsProps {
+  userId: string;
+}
+
+export default function Applicants({ userId }: ApplicantsProps) {
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
-    fetchApplicants();
-  }, [userId]);
+    const fetchApplications = async () => {
+      try {
+        const response = await fetch(`/api/applications?ideaAuthorId=${userId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+          setApplications(data.applications);
+        } else {
+          console.error('Error fetching applications:', data.error);
+        }
+      } catch (error) {
+        console.error('Error fetching applications:', error);
+        toast({
+          title: "Error",
+          description: "Error al cargar los postulantes",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const fetchApplicants = async () => {
-    try {
-      setLoading(true);
-      // Aquí deberías hacer la llamada a tu API
-      const response = await fetch(`/api/applicants?userId=${userId}`);
-      if (!response.ok) throw new Error('Error fetching applicants');
-      const data = await response.json();
-      setApplicants(data);
-    } catch (err) {
-      setError('Error al cargar los postulantes');
-      console.error(err);
-    } finally {
-      setLoading(false);
+    if (userId) {
+      fetchApplications();
     }
-  };
+  }, [userId, toast]);
 
-  const updateApplicationStatus = async (applicationId, status) => {
+  const updateApplicationStatus = async (applicationId: string, status: 'accepted' | 'rejected') => {
+    setUpdatingId(applicationId);
     try {
-      const response = await fetch(`/api/applications/${applicationId}`, {
+      const response = await fetch(`/api/applications/${applicationId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -50,36 +58,47 @@ export default function Applicants({ userId }) {
         body: JSON.stringify({ status }),
       });
       
-      if (!response.ok) throw new Error('Error updating status');
+      const data = await response.json();
       
-      // Actualizar el estado local
-      setApplicants(prevApplicants =>
-        prevApplicants.map(applicant => ({
-          ...applicant,
-          applications: applicant.applications.map(app =>
+      if (response.ok) {
+        setApplications(prevApplications =>
+          prevApplications.map(app =>
             app.id === applicationId ? { ...app, status } : app
           )
-        }))
-      );
-    } catch (err) {
-      console.error('Error updating application status:', err);
+        );
+
+        toast({
+          title: "Estado actualizado",
+          description: `Aplicación ${status === 'accepted' ? 'aceptada' : 'rechazada'} correctamente`,
+        });
+      } else {
+        throw new Error(data.error || 'Error al actualizar el estado');
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Error al actualizar el estado",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingId(null);
     }
   };
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'accepted':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 text-green-800 border-green-200';
       case 'rejected':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 text-red-800 border-red-200';
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  const getStatusIcon = (status) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
       case 'accepted':
         return <CheckCircle className="w-4 h-4" />;
@@ -92,7 +111,7 @@ export default function Applicants({ userId }) {
     }
   };
 
-  const getStatusText = (status) => {
+  const getStatusText = (status: string) => {
     switch (status) {
       case 'accepted':
         return 'Aceptado';
@@ -105,7 +124,7 @@ export default function Applicants({ userId }) {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <p>Cargando postulantes...</p>
@@ -113,18 +132,7 @@ export default function Applicants({ userId }) {
     );
   }
 
-  if (error) {
-    return (
-      <div className="text-center text-red-600 p-4">
-        <p>{error}</p>
-        <Button onClick={fetchApplicants} className="mt-2">
-          Intentar de nuevo
-        </Button>
-      </div>
-    );
-  }
-
-  if (applicants.length === 0) {
+  if (applications.length === 0) {
     return (
       <div className="text-center text-gray-500 py-8">
         <User className="w-16 h-16 mx-auto mb-4 opacity-50" />
@@ -136,143 +144,89 @@ export default function Applicants({ userId }) {
 
   return (
     <div className="space-y-4">
-      {applicants.map((applicant) => (
-        <Card key={applicant.id} className="border border-gray-200">
-          <CardHeader>
+      {applications.map((application) => (
+        <Card key={application.id} className="border border-black">
+          <CardHeader className="border-b border-black">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <Avatar className="w-12 h-12">
-                  <AvatarImage src={applicant.profileImage} />
                   <AvatarFallback>
-                    {applicant.name?.charAt(0) || applicant.email.charAt(0)}
+                    {application.name?.charAt(0) || application.email.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
                 <div>
                   <CardTitle className="text-lg">
-                    {applicant.name || 'Usuario Anónimo'}
+                    {application.name || 'Usuario Anónimo'}
                   </CardTitle>
-                  <p className="text-sm text-gray-600">{applicant.email}</p>
+                  <div className="flex items-center text-sm text-gray-600">
+                    <Mail className="w-4 h-4 mr-1" />
+                    {application.email}
+                  </div>
                 </div>
               </div>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Eye className="w-4 h-4 mr-2" />
-                    Ver perfil
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Perfil del postulante</DialogTitle>
-                    <DialogDescription>
-                      Información detallada del postulante
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="w-16 h-16">
-                        <AvatarImage src={applicant.profileImage} />
-                        <AvatarFallback>
-                          {applicant.name?.charAt(0) || applicant.email.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <h3 className="text-xl font-semibold">
-                          {applicant.name || 'Usuario Anónimo'}
-                        </h3>
-                        <div className="flex items-center text-gray-600 mt-1">
-                          <Mail className="w-4 h-4 mr-1" />
-                          {applicant.email}
-                        </div>
-                        {applicant.phone && (
-                          <div className="flex items-center text-gray-600 mt-1">
-                            <Phone className="w-4 h-4 mr-1" />
-                            {applicant.phone}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    {applicant.bio && (
-                      <div>
-                        <h4 className="font-medium mb-2">Biografía</h4>
-                        <p className="text-gray-700">{applicant.bio}</p>
-                      </div>
-                    )}
-                    {applicant.skills && applicant.skills.length > 0 && (
-                      <div>
-                        <h4 className="font-medium mb-2">Habilidades</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {applicant.skills.map((skill, index) => (
-                            <Badge key={index} variant="secondary">
-                              {skill}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </DialogContent>
-              </Dialog>
+              <Badge className={`${getStatusColor(application.status)} border`}>
+                {getStatusIcon(application.status)}
+                <span className="ml-1">{getStatusText(application.status)}</span>
+              </Badge>
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <h4 className="font-medium text-gray-900">Postulaciones:</h4>
-              {applicant.applications.map((application) => (
-                <div
-                  key={application.id}
-                  className="border border-gray-200 rounded-lg p-4 space-y-3"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h5 className="font-medium text-gray-900 mb-1">
-                        {application.idea.title}
-                      </h5>
-                      <p className="text-sm text-gray-600 mb-2">
-                        {application.idea.description?.substring(0, 100)}...
-                      </p>
-                      <div className="flex items-center space-x-2">
-                        <Badge className={getStatusColor(application.status)}>
-                          {getStatusIcon(application.status)}
-                          <span className="ml-1">{getStatusText(application.status)}</span>
-                        </Badge>
-                        <span className="text-xs text-gray-500">
-                          Postulado el {new Date(application.createdAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {application.message && (
-                    <div className="bg-gray-50 p-3 rounded">
-                      <p className="text-sm font-medium text-gray-700 mb-1">Mensaje:</p>
-                      <p className="text-sm text-gray-600">{application.message}</p>
-                    </div>
-                  )}
-                  
-                  {application.status === 'pending' && (
-                    <div className="flex space-x-2 pt-2">
-                      <Button
-                        size="sm"
-                        onClick={() => updateApplicationStatus(application.id, 'accepted')}
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        <CheckCircle className="w-4 h-4 mr-1" />
-                        Aceptar
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => updateApplicationStatus(application.id, 'rejected')}
-                        className="border-red-300 text-red-600 hover:bg-red-50"
-                      >
-                        <XCircle className="w-4 h-4 mr-1" />
-                        Rechazar
-                      </Button>
-                    </div>
-                  )}
+          
+          <CardContent className="pt-6">
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-medium text-gray-900 mb-2">Aplicación para:</h4>
+                <p className="text-sm text-gray-700 font-medium">{application.ideaTitle}</p>
+              </div>
+
+              <div>
+                <h4 className="font-medium text-gray-700 mb-2">Carta de Presentación:</h4>
+                <div className="bg-gray-50 p-3 border-l-2 border-black text-sm">
+                  {application.coverLetter}
                 </div>
-              ))}
+              </div>
+              
+              {application.cvLink && (
+                <div>
+                  <h4 className="font-medium text-gray-700 mb-2">CV / Portfolio:</h4>
+                  <a 
+                    href={application.cvLink} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center text-sm text-blue-600 hover:underline"
+                  >
+                    <ExternalLink className="w-4 h-4 mr-1" />
+                    Ver CV/Portfolio
+                  </a>
+                </div>
+              )}
+
+              <div className="text-xs text-gray-500">
+                Aplicación enviada el {new Date(application.createdAt).toLocaleDateString('es-ES')}
+              </div>
+              
+              {application.status === 'pending' && (
+                <div className="flex space-x-2 pt-4 border-t border-gray-200">
+                  <Button
+                    size="sm"
+                    onClick={() => updateApplicationStatus(application.id, 'accepted')}
+                    disabled={updatingId === application.id}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-1" />
+                    {updatingId === application.id ? 'Actualizando...' : 'Aceptar'}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => updateApplicationStatus(application.id, 'rejected')}
+                    disabled={updatingId === application.id}
+                    className="border-red-300 text-red-600 hover:bg-red-50"
+                  >
+                    <XCircle className="w-4 h-4 mr-1" />
+                    {updatingId === application.id ? 'Actualizando...' : 'Rechazar'}
+                  </Button>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

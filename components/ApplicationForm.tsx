@@ -18,31 +18,68 @@ export default function ApplicationForm({ ideaId }: ApplicationFormProps) {
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
   const [coverLetter, setCoverLetter] = useState('');
-  const [cv, setCv] = useState('');
+  const [cvLink, setCvLink] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "Debes estar logueado para aplicar",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     
-    // Simulate submitting the application
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    toast({
-      title: "Application submitted",
-      description: "Your application has been sent to the idea creator",
-    });
-    
-    setCoverLetter('');
-    setCv('');
-    setIsSubmitting(false);
+    try {
+      const response = await fetch('/api/applications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ideaId,
+          userId: user.id,
+          name,
+          email,
+          coverLetter,
+          cvLink,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al enviar la aplicación');
+      }
+
+      toast({
+        title: "¡Aplicación enviada!",
+        description: "Tu aplicación ha sido enviada al creador de la idea",
+      });
+      
+      setCoverLetter('');
+      setCvLink('');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Error al enviar la aplicación",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="name">Name</Label>
+          <Label htmlFor="name">Nombre</Label>
           <Input
             id="name"
             value={name}
@@ -64,35 +101,32 @@ export default function ApplicationForm({ ideaId }: ApplicationFormProps) {
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="coverLetter">Cover Letter</Label>
+        <Label htmlFor="coverLetter">Carta de Presentación</Label>
         <Textarea
           id="coverLetter"
           value={coverLetter}
           onChange={(e) => setCoverLetter(e.target.value)}
-          placeholder="Explain why you're interested in this idea and what you can contribute"
+          placeholder="Explica por qué estás interesado en esta idea y qué puedes aportar"
           required
           rows={6}
         />
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="cv">CV / Resume</Label>
+        <Label htmlFor="cvLink">Enlace a CV / Portfolio</Label>
         <Input
-          id="cv"
-          type="file"
-          accept=".pdf,.doc,.docx"
-          onChange={(e) => {
-            if (e.target.files?.[0]) {
-              setCv(e.target.files[0].name);
-            }
-          }}
+          id="cvLink"
+          type="url"
+          value={cvLink}
+          onChange={(e) => setCvLink(e.target.value)}
+          placeholder="https://tu-cv-o-portfolio.com"
           required
         />
-        <p className="text-xs text-gray-500">Upload your CV (PDF, DOC or DOCX)</p>
+        <p className="text-xs text-gray-500">Proporciona un enlace a tu CV o portfolio online</p>
       </div>
       
       <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? 'Submitting application...' : 'Apply'}
+        {isSubmitting ? 'Enviando aplicación...' : 'Aplicar'}
       </Button>
     </form>
   );

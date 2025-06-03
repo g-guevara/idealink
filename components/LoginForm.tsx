@@ -21,17 +21,26 @@ export default function LoginForm({ onSuccess, onSwitchToSignup }: LoginFormProp
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!email || !password) {
+      toast({
+        title: "Campos requeridos",
+        description: "Por favor completa todos los campos",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       await login(email, password);
       toast({
-        title: "Login successful",
-        description: "Welcome back to IdeaConnect!",
+        title: "¡Bienvenido!",
+        description: "Has iniciado sesión correctamente",
       });
       onSuccess();
     } catch (error) {
       toast({
-        title: "Login failed",
-        description: "Please check your credentials and try again",
+        title: "Error al iniciar sesión",
+        description: error instanceof Error ? error.message : "Verifica tus credenciales",
         variant: "destructive",
       });
     }
@@ -47,30 +56,38 @@ export default function LoginForm({ onSuccess, onSwitchToSignup }: LoginFormProp
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          placeholder="Enter your email"
+          placeholder="Ingresa tu email"
+          disabled={isLoading}
         />
       </div>
       
       <div className="grid gap-2">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">Contraseña</Label>
         <Input
           id="password"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          placeholder="Enter your password"
+          placeholder="Ingresa tu contraseña"
+          disabled={isLoading}
         />
       </div>
 
       <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? 'Logging in...' : 'Log in'}
+        {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
       </Button>
       
       <div className="text-center text-sm">
-        Don't have an account?{' '}
-        <Button variant="link" className="p-0" onClick={onSwitchToSignup}>
-          Sign up
+        ¿No tienes una cuenta?{' '}
+        <Button 
+          variant="link" 
+          className="p-0" 
+          onClick={onSwitchToSignup}
+          type="button"
+          disabled={isLoading}
+        >
+          Regístrate
         </Button>
       </div>
     </form>

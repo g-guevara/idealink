@@ -46,55 +46,55 @@ export default function DashboardPage() {
         {/* Mobile Content */}
         <div className="w-full">
           <Tabs defaultValue="my-ideas" className="w-full">
-            <TabsList className="w-full border-b border-black rounded-none bg-white grid grid-cols-4">
+            <TabsList className="w-full border-b border-black rounded-none bg-white grid grid-cols-4 h-auto">
               <TabsTrigger 
                 value="submit" 
-                className="data-[state=active]:bg-black data-[state=active]:text-white rounded-none border-r border-black text-xs px-1 py-3"
+                className="data-[state=active]:bg-black data-[state=active]:text-white rounded-none border-r border-black text-xs px-1 py-3 h-auto"
               >
                 Enviar
               </TabsTrigger>
               <TabsTrigger 
                 value="my-ideas" 
-                className="data-[state=active]:bg-black data-[state=active]:text-white rounded-none border-r border-black text-xs px-1 py-3"
+                className="data-[state=active]:bg-black data-[state=active]:text-white rounded-none border-r border-black text-xs px-1 py-3 h-auto"
               >
                 Ideas
               </TabsTrigger>
               <TabsTrigger 
                 value="applications" 
-                className="data-[state=active]:bg-black data-[state=active]:text-white rounded-none border-r border-black text-xs px-1 py-3"
+                className="data-[state=active]:bg-black data-[state=active]:text-white rounded-none border-r border-black text-xs px-1 py-3 h-auto"
               >
                 Mis Post.
               </TabsTrigger>
               <TabsTrigger 
                 value="applicants" 
-                className="data-[state=active]:bg-black data-[state=active]:text-white rounded-none text-xs px-1 py-3"
+                className="data-[state=active]:bg-black data-[state=active]:text-white rounded-none text-xs px-1 py-3 h-auto"
               >
                 Postulantes
               </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="submit" className="p-4 focus-visible:outline-none">
+            <TabsContent value="submit" className="p-4 mt-0">
               <div className="w-full">
                 <h2 className="text-xl font-bold mb-4">Envía una nueva idea</h2>
                 <SubmitIdeaForm />
               </div>
             </TabsContent>
             
-            <TabsContent value="my-ideas" className="p-4 focus-visible:outline-none">
+            <TabsContent value="my-ideas" className="p-4 mt-0">
               <div className="w-full">
                 <h2 className="text-xl font-bold mb-4">Mis Ideas</h2>
                 <MyIdeas userId={user.id} />
               </div>
             </TabsContent>
             
-            <TabsContent value="applications" className="p-4 focus-visible:outline-none">
+            <TabsContent value="applications" className="p-4 mt-0">
               <div className="w-full">
                 <h2 className="text-xl font-bold mb-4">Mis Postulaciones</h2>
                 <MyApplications userId={user.id} />
               </div>
             </TabsContent>
 
-            <TabsContent value="applicants" className="p-4 focus-visible:outline-none">
+            <TabsContent value="applicants" className="p-4 mt-0">
               <div className="w-full">
                 <h2 className="text-xl font-bold mb-4">Postulantes</h2>
                 <Applicants userId={user.id} />
@@ -122,56 +122,56 @@ export default function DashboardPage() {
 
         {/* Desktop Content */}
         <div className="flex-1">
-          <Tabs defaultValue="my-ideas" className="w-full">
-            <TabsList className="w-full border-b border-black rounded-none bg-white grid grid-cols-4">
+          <Tabs defaultValue="my-ideas" className="w-full h-full">
+            <TabsList className="w-full border-b border-black rounded-none bg-white grid grid-cols-4 h-auto">
               <TabsTrigger 
                 value="submit" 
-                className="data-[state=active]:bg-black data-[state=active]:text-white rounded-none border-r border-black"
+                className="data-[state=active]:bg-black data-[state=active]:text-white rounded-none border-r border-black py-4 h-auto"
               >
                 Enviar Idea
               </TabsTrigger>
               <TabsTrigger 
                 value="my-ideas" 
-                className="data-[state=active]:bg-black data-[state=active]:text-white rounded-none border-r border-black"
+                className="data-[state=active]:bg-black data-[state=active]:text-white rounded-none border-r border-black py-4 h-auto"
               >
                 Mis Ideas
               </TabsTrigger>
               <TabsTrigger 
                 value="applications" 
-                className="data-[state=active]:bg-black data-[state=active]:text-white rounded-none border-r border-black"
+                className="data-[state=active]:bg-black data-[state=active]:text-white rounded-none border-r border-black py-4 h-auto"
               >
                 Mis Postulaciones
               </TabsTrigger>
               <TabsTrigger 
                 value="applicants" 
-                className="data-[state=active]:bg-black data-[state=active]:text-white rounded-none"
+                className="data-[state=active]:bg-black data-[state=active]:text-white rounded-none py-4 h-auto"
               >
                 Postulantes
               </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="submit" className="p-8 focus-visible:outline-none">
+            <TabsContent value="submit" className="p-8 mt-0">
               <div className="max-w-3xl mx-auto">
                 <h2 className="text-2xl font-bold mb-6">Envía una nueva idea</h2>
                 <SubmitIdeaForm />
               </div>
             </TabsContent>
             
-            <TabsContent value="my-ideas" className="p-8 focus-visible:outline-none">
+            <TabsContent value="my-ideas" className="p-8 mt-0">
               <div className="max-w-4xl mx-auto">
                 <h2 className="text-2xl font-bold mb-6">Mis Ideas</h2>
                 <MyIdeas userId={user.id} />
               </div>
             </TabsContent>
             
-            <TabsContent value="applications" className="p-8 focus-visible:outline-none">
+            <TabsContent value="applications" className="p-8 mt-0">
               <div className="max-w-4xl mx-auto">
                 <h2 className="text-2xl font-bold mb-6">Mis Postulaciones</h2>
                 <MyApplications userId={user.id} />
               </div>
             </TabsContent>
 
-            <TabsContent value="applicants" className="p-8 focus-visible:outline-none">
+            <TabsContent value="applicants" className="p-8 mt-0">
               <div className="max-w-4xl mx-auto">
                 <h2 className="text-2xl font-bold mb-6">Postulantes</h2>
                 <Applicants userId={user.id} />

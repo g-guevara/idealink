@@ -3,24 +3,32 @@ export interface Idea {
   title: string;
   shortDescription: string;
   longDescription: string;
-  professions: string[];
   category: string;
   timeRequired: string;
   isPaid: boolean;
-  teamSize: number;
-  createdBy: string;
+  membersNeeded: number; // Cambiado de teamSize para consistencia con API
+  professions: string[];
+  author: {
+    id: string;
+    name: string;
+    email: string;
+  };
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface Application {
   id: string;
   ideaId: string;
+  ideaTitle: string;
   userId: string;
   name: string;
   email: string;
   coverLetter: string;
-  cv: string;
+  cvLink: string; // Cambiado de cv para consistencia con API
+  status: 'pending' | 'accepted' | 'rejected';
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface User {
