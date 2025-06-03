@@ -123,7 +123,7 @@ export default function Home() {
         <div className="relative">
           <div className="relative z-10 space-y-4">
             <h2 className="text-xl font-bold tracking-tight">
-              Ideas Destacadas ({filteredIdeas.length})
+              Ideas({filteredIdeas.length})
             </h2>
             {filteredIdeas.length === 0 ? (
               <div className="text-center py-8">
