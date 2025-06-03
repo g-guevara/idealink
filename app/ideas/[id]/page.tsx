@@ -70,7 +70,7 @@ export default function IdeaDetailPage() {
               
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-gray-500" />
-                <span className="text-sm">{idea.teamSize} team members</span>
+                <span className="text-sm">{idea.membersNeeded} team members</span>
               </div>
               
               <div className="flex items-center gap-2">

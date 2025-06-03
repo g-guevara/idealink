@@ -11,8 +11,12 @@ export const mockIdeas: Idea[] = [
     category: 'Technology',
     timeRequired: '3-6 months',
     isPaid: true,
-    teamSize: 4,
-    createdBy: 'user-1',
+    membersNeeded: 4,
+    author: {
+      id: 'user-1',
+      name: 'John Doe',
+      email: 'john@example.com'
+    },
     createdAt: '2025-04-10T12:00:00Z'
   },
   {
@@ -25,8 +29,12 @@ export const mockIdeas: Idea[] = [
     category: 'Business',
     timeRequired: '6-12 months',
     isPaid: true,
-    teamSize: 5,
-    createdBy: 'user-2',
+    membersNeeded: 5,
+    author: {
+      id: 'user-2',
+      name: 'Jane Smith',
+      email: 'jane@example.com'
+    },
     createdAt: '2025-04-09T15:30:00Z'
   },
   {
@@ -39,8 +47,12 @@ export const mockIdeas: Idea[] = [
     category: 'Health',
     timeRequired: '4-8 months',
     isPaid: false,
-    teamSize: 3,
-    createdBy: 'user-3',
+    membersNeeded: 3,
+    author: {
+      id: 'user-3',
+      name: 'Alex Johnson',
+      email: 'alex@example.com'
+    },
     createdAt: '2025-04-08T09:15:00Z'
   },
   {
@@ -53,8 +65,12 @@ export const mockIdeas: Idea[] = [
     category: 'Business',
     timeRequired: '2-4 months',
     isPaid: false,
-    teamSize: 4,
-    createdBy: 'user-1',
+    membersNeeded: 4,
+    author: {
+      id: 'user-1',
+      name: 'John Doe',
+      email: 'john@example.com'
+    },
     createdAt: '2025-04-07T14:45:00Z'
   },
   {
@@ -67,8 +83,12 @@ export const mockIdeas: Idea[] = [
     category: 'Education',
     timeRequired: '3-6 months',
     isPaid: true,
-    teamSize: 4,
-    createdBy: 'user-2',
+    membersNeeded: 4,
+    author: {
+      id: 'user-2',
+      name: 'Jane Smith',
+      email: 'jane@example.com'
+    },
     createdAt: '2025-04-06T10:20:00Z'
   },
   {
@@ -81,8 +101,12 @@ export const mockIdeas: Idea[] = [
     category: 'Technology',
     timeRequired: '2-4 months',
     isPaid: false,
-    teamSize: 3,
-    createdBy: 'user-3',
+    membersNeeded: 3,
+    author: {
+      id: 'user-3',
+      name: 'Alex Johnson',
+      email: 'alex@example.com'
+    },
     createdAt: '2025-04-05T16:10:00Z'
   }
 ];
@@ -91,31 +115,37 @@ export const mockApplications: Application[] = [
   {
     id: 'app-1',
     ideaId: '1',
+    ideaTitle: 'AI-Powered Recipe Generator',
     userId: 'user-2',
     name: 'Jane Smith',
     email: 'jane@example.com',
     coverLetter: 'I have experience with AI development and would love to contribute to this project.',
-    cv: 'resume_jane_smith.pdf',
+    cvLink: 'https://example.com/resume_jane_smith.pdf',
+    status: 'pending',
     createdAt: '2025-04-11T10:00:00Z'
   },
   {
     id: 'app-2',
     ideaId: '1',
+    ideaTitle: 'AI-Powered Recipe Generator',
     userId: 'user-3',
     name: 'Alex Johnson',
     email: 'alex@example.com',
     coverLetter: 'As a UI/UX designer, I can help create an intuitive interface for your recipe app.',
-    cv: 'resume_alex_johnson.pdf',
+    cvLink: 'https://example.com/resume_alex_johnson.pdf',
+    status: 'pending',
     createdAt: '2025-04-12T14:30:00Z'
   },
   {
     id: 'app-3',
     ideaId: '3',
+    ideaTitle: 'Virtual Reality Meditation Space',
     userId: 'user-1',
     name: 'Sam Wilson',
     email: 'sam@example.com',
     coverLetter: 'I have experience in VR development and meditation practice.',
-    cv: 'resume_sam_wilson.pdf',
+    cvLink: 'https://example.com/resume_sam_wilson.pdf',
+    status: 'pending',
     createdAt: '2025-04-10T09:45:00Z'
   }
 ];
